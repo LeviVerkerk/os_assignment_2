@@ -1,0 +1,48 @@
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /home/lverkerk/assignment2/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja cmTC_94342 && [1/2] Building C object CMakeFiles/cmTC_94342.dir/src.c.o
+[2/2] Linking C executable cmTC_94342
+FAILED: cmTC_94342 
+: && /bin/clang-10 -DCMAKE_HAVE_LIBC_PTHREAD  -rdynamic CMakeFiles/cmTC_94342.dir/src.c.o  -o cmTC_94342   && :
+/bin/ld: CMakeFiles/cmTC_94342.dir/src.c.o: in function `main':
+src.c:(.text+0x35): undefined reference to `pthread_create'
+/bin/ld: src.c:(.text+0x41): undefined reference to `pthread_detach'
+/bin/ld: src.c:(.text+0x53): undefined reference to `pthread_join'
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+ninja: build stopped: subcommand failed.
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/lverkerk/assignment2/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/ninja cmTC_9816c && [1/2] Building C object CMakeFiles/cmTC_9816c.dir/CheckFunctionExists.c.o
+[2/2] Linking C executable cmTC_9816c
+FAILED: cmTC_9816c 
+: && /bin/clang-10 -DCHECK_FUNCTION_EXISTS=pthread_create  -rdynamic CMakeFiles/cmTC_9816c.dir/CheckFunctionExists.c.o  -o cmTC_9816c  -lpthreads && :
+/bin/ld: cannot find -lpthreads
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+ninja: build stopped: subcommand failed.
+
+
+

@@ -1,0 +1,3 @@
+/home/lverkerk/assignment2/build/CMakeFiles/rebuild_cache.dir
+/home/lverkerk/assignment2/build/CMakeFiles/edit_cache.dir
+/home/lverkerk/assignment2/build/CMakeFiles/prime.dir

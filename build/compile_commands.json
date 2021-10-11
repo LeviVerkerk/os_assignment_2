@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/lverkerk/assignment2/build",
+  "command": "/bin/clang++-10     -Wall -O2 -g -g   -std=gnu++2a -o CMakeFiles/prime.dir/main.cpp.o -c /home/lverkerk/assignment2/project/main.cpp",
+  "file": "/home/lverkerk/assignment2/project/main.cpp"
+}
+]
