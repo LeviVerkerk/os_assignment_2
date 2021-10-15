@@ -77,6 +77,7 @@ public:
   int readBuffer();
   int setBoundBuffer(int bound);
   void setUnboundedBuffer();
+  Logger getLogger();
 };
 
 int Buffer::writeBuffer(int newValue)
@@ -117,6 +118,7 @@ int Buffer::readBuffer()
     log.writeLog("Failed to readBuffer, as buffer seems to be empty...");
     // ------- End Critical --------
     return -1;
+    cout << log.readLog(-1);
   }
 }
 
@@ -148,6 +150,10 @@ void Buffer::setUnboundedBuffer()
   // ------- End Critical --------
 }
 
+Logger Buffer::getLogger() {
+  return log;
+}
+
 int main(int argc, char *argv[])
 {
   Logger log = Logger();
@@ -156,12 +162,18 @@ int main(int argc, char *argv[])
   buffer.writeBuffer(500);
   buffer.writeBuffer(999);
   buffer.writeBuffer(10);
-  cout << buffer.readBuffer();
   buffer.setBoundBuffer(1);
   buffer.writeBuffer(2);
   buffer.writeBuffer(9);
   buffer.setUnboundedBuffer();
-  cout << log.readLog(-1);
+  buffer.writeBuffer(2);
+  buffer.writeBuffer(9);
+  for (int i = 0; i < 3; i++) {
+    cout << "[BUFFER READ] " + to_string(buffer.readBuffer()) + "\n";
+  }
+  
+  cout << buffer.getLogger().readLog(-1);
+
 
   return 0;
 }
