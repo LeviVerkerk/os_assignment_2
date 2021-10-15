@@ -14,13 +14,14 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <sstream>
+
+// although it is good habit, you don't have to type 'std::' before many objects by including this line
+using namespace std;
 
 mutex lockBuffer;
 mutex lockLogger;
 mutex lockBounds;
-
-// although it is good habit, you don't have to type 'std::' before many objects by including this line
-using namespace std;
 
 class Logger
 {
@@ -46,7 +47,10 @@ void Logger::writeLog(string logMessage)
 */
 string Logger::readLog(int index)
 {
-  string x = "";
+  std::thread::id this_id = std::this_thread::get_id();
+  std::ostringstream ss;
+  ss << this_id;
+  string x = "[" + ss.str() + "] ";
   if (index == -1)
   {
     
@@ -176,11 +180,7 @@ Logger Buffer::getLogger() {
   return log;
 }
 
-int main(int argc, char *argv[])
-{
-  Logger log = Logger();
-  Buffer buffer = Buffer(log);
-
+void testRun1(Buffer buffer) {
   buffer.writeBuffer(500);
   buffer.writeBuffer(999);
   buffer.writeBuffer(10);
@@ -191,11 +191,27 @@ int main(int argc, char *argv[])
   buffer.writeBuffer(2);
   buffer.writeBuffer(9);
   for (int i = 0; i < 3; i++) {
-    cout << "[BUFFER READ] " + to_string(buffer.readBuffer()) + "\n";
+    std::thread::id this_id = std::this_thread::get_id();
+    cout << "[" << this_id << "] [BUFFER READ] " + to_string(buffer.readBuffer()) + "\n";
   }
   
   cout << buffer.getLogger().readLog(-1);
+}
 
+int main(int argc, char *argv[])
+{
+  Logger log = Logger();
+  Buffer buffer = Buffer(log);
+
+  thread first (testRun1, buffer);
+  thread second (testRun1, buffer);
+  thread third (testRun1, buffer);
+
+  first.join();
+  second.join();
+  third.join();
+
+  cout << "All threads finished..." << endl;
 
   return 0;
 }
