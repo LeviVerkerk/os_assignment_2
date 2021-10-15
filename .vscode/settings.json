@@ -2,5 +2,6 @@
     "cmake.sourceDirectory": "${workspaceFolder}/project",
     "files.associations": {
         "iostream": "cpp"
-    }
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
 }

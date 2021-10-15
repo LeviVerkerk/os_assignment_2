@@ -15,6 +15,10 @@
 #include <thread>
 #include <vector>
 
+mutex lockBuffer;
+mutex lockLogger;
+mutex lockBounds;
+
 // although it is good habit, you don't have to type 'std::' before many objects by including this line
 using namespace std;
 
@@ -31,7 +35,9 @@ public:
 void Logger::writeLog(string logMessage)
 {
   // ------- Begin Critical --------
+  lockLogger.lock();
   logger.push_back(logMessage);
+  lockLogger.unlock();
   // ------- End Critical --------
 }
 
@@ -45,16 +51,20 @@ string Logger::readLog(int index)
   {
     
     // ------- Begin Critical --------
+    lockLogger.lock();
     for (int i = 0; i < logger.size(); i++)
     {
       x += logger[i] + "\n";
     }
+    lockLogger.unlock();
     // ------- End Critical --------
   }
   else
   {
     // ------- Begin Critical --------
+    lockLogger.lock();
     x += logger[index];
+    lockLogger.unlock();
     // ------- End Critical --------
   }
   return x;
@@ -83,16 +93,20 @@ public:
 int Buffer::writeBuffer(int newValue)
 {
   // ------- Begin Critical --------
+  lockBuffer.lock();
   if (buffer.size() < maxSizeBuffer || maxSizeBuffer == -1)
   {
     buffer.push_back(newValue);
     log.writeLog("Succesfully written to the buffer with value " + to_string(newValue) + ".");
     // ------- End Critical --------
+    lockBuffer.unlock();
     return 0;
   }
 
+
   else
   {
+    lockBuffer.unlock();
     // ------- Begin Critical --------
     log.writeLog("Failed to writeBuffer, as buffer has reached maximum capacity...");
     // ------- End Critical --------
@@ -103,22 +117,24 @@ int Buffer::writeBuffer(int newValue)
 int Buffer::readBuffer()
 {
   // ------- Begin Critical --------
+  lockBuffer.lock();
   if (!buffer.empty())
   {
     int x = buffer[0];
     buffer.erase(buffer.begin());
     ;
     log.writeLog("Succesfully read the buffer with value " + to_string(x) + ".");
+    lockBuffer.unlock();
     // ------- End Critical --------
     return x;
   }
   else
   {
+    lockBuffer.unlock();
     // ------- Begin Critical --------
     log.writeLog("Failed to readBuffer, as buffer seems to be empty...");
     // ------- End Critical --------
     return -1;
-    cout << log.readLog(-1);
   }
 }
 
@@ -127,8 +143,12 @@ int Buffer::setBoundBuffer(int bound)
   if (bound >= 0)
   {
     // ------- Begin Critical --------
+    lockBuffer.lock();
     buffer.resize(bound);
+    lockBuffer.unlock();
+    lockBounds.lock();
     maxSizeBuffer = bound;
+    lockBounds.unlock();
     log.writeLog("Succesfully set buffer's bound to " + to_string(bound));
     // ------- End Critical --------
     return 0;
@@ -145,7 +165,9 @@ int Buffer::setBoundBuffer(int bound)
 void Buffer::setUnboundedBuffer()
 {
   // ------- Begin Critical --------
+  lockBounds.lock();
   maxSizeBuffer = -1;
+  lockBounds.unlock();
   log.writeLog("Succesfully unbounded the buffer!");
   // ------- End Critical --------
 }
