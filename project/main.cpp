@@ -220,7 +220,7 @@ void testAddingItems(Buffer &buffer, int toWrite)
     t.join();
   }
 
-  cout << buffer.getLogger().readLog(-1);
+  // cout << buffer.getLogger().readLog(-1);
 }
 
 void readItem(Buffer &buffer)
@@ -269,16 +269,10 @@ int main(int argc, char *argv[])
   //  Reading items
   testReadingItems(buffer, noItems);
   //  Testing bound
-  testBound(buffer, 2);
-
-
-  // thread first(testRun1, buffer);
-  // thread second(testRun1, buffer);
-  // thread third(testRun1, buffer);
-
-  // first.join();
-  // second.join();
-  // third.join();
+  cout << "-------------Testing Bounds--------------" << endl;
+  Logger log2 = Logger();
+  Buffer buffer2 = Buffer(log2);  
+  testBound(buffer2, 2);
 
   cout << "All threads finished..." << endl;
 
