@@ -53,7 +53,7 @@ string Logger::readLog(int index)
   string x = "[" + ss.str() + "] ";
   if (index == -1)
   {
-    
+
     // ------- Begin Critical --------
     lockLogger.lock();
     for (int i = 0; i < logger.size(); i++)
@@ -82,7 +82,7 @@ private:
   Logger log;
 
 public:
-  Buffer(Logger& logger)
+  Buffer(Logger &logger)
   {
     log = logger;
     maxSizeBuffer = -1;
@@ -106,7 +106,6 @@ int Buffer::writeBuffer(int newValue)
     lockBuffer.unlock();
     return 0;
   }
-
 
   else
   {
@@ -176,11 +175,13 @@ void Buffer::setUnboundedBuffer()
   // ------- End Critical --------
 }
 
-Logger Buffer::getLogger() {
+Logger Buffer::getLogger()
+{
   return log;
 }
 
-void testRun1(Buffer buffer) {
+void testRun1(Buffer buffer)
+{
   buffer.writeBuffer(500);
   buffer.writeBuffer(999);
   buffer.writeBuffer(10);
@@ -190,9 +191,66 @@ void testRun1(Buffer buffer) {
   buffer.setUnboundedBuffer();
   buffer.writeBuffer(2);
   buffer.writeBuffer(9);
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 3; i++)
+  {
     std::thread::id this_id = std::this_thread::get_id();
     cout << "[" << this_id << "] [BUFFER READ] " + to_string(buffer.readBuffer()) + "\n";
+  }
+
+  cout << buffer.getLogger().readLog(-1);
+}
+
+void addRandomInt(Buffer &buffer)
+{
+  buffer.writeBuffer(rand() % 100);
+}
+
+void testAddingItems(Buffer &buffer, int toWrite)
+{
+
+  vector<thread> ThreadVector;
+
+  for (int i = 0; i < toWrite; i++)
+  {
+    ThreadVector.emplace_back([&]()
+                              { addRandomInt(buffer); }); // Pass by reference here, make sure the object lifetime is correct
+  }
+  for (auto &t : ThreadVector)
+  {
+    t.join();
+  }
+
+  cout << buffer.getLogger().readLog(-1);
+}
+
+void readItem(Buffer &buffer)
+{
+  cout << buffer.readBuffer() << endl;
+}
+
+void testReadingItems(Buffer &buffer, int toRead)
+{
+  vector<thread> ThreadVector;
+
+  for (int i = 0; i < toRead; i++)
+  {
+    ThreadVector.emplace_back([&]()
+                              { readItem(buffer); }); // Pass by reference here, make sure the object lifetime is correct
+  }
+  for (auto &t : ThreadVector)
+  {
+    t.join();
+  }
+
+  cout << buffer.getLogger().readLog(-1);
+}
+
+void testBound(Buffer& buffer, int newBound) {
+  buffer.setBoundBuffer(newBound);
+
+  for (int i = 0; i < newBound + 1; i++)
+  {
+    addRandomInt(buffer);
   }
   
   cout << buffer.getLogger().readLog(-1);
@@ -203,13 +261,24 @@ int main(int argc, char *argv[])
   Logger log = Logger();
   Buffer buffer = Buffer(log);
 
-  thread first (testRun1, buffer);
-  thread second (testRun1, buffer);
-  thread third (testRun1, buffer);
+  int noItems = 10;
 
-  first.join();
-  second.join();
-  third.join();
+  //  Adding items
+  testAddingItems(buffer, noItems);
+  cout << "Done adding items..." << endl;
+  //  Reading items
+  testReadingItems(buffer, noItems);
+  //  Testing bound
+  testBound(buffer, 2);
+
+
+  // thread first(testRun1, buffer);
+  // thread second(testRun1, buffer);
+  // thread third(testRun1, buffer);
+
+  // first.join();
+  // second.join();
+  // third.join();
 
   cout << "All threads finished..." << endl;
 
