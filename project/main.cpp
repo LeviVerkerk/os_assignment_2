@@ -92,14 +92,18 @@ public:
   int setBoundBuffer(int bound);
   void setUnboundedBuffer();
   Logger getLogger();
+  int size();
+  int getBound();
 };
 
 int Buffer::writeBuffer(int newValue)
 {
   // ------- Begin Critical --------
   lockBuffer.lock();
+  // cout << "Writing to buffer with size : " + to_string(buffer.size()) << endl;
   if (buffer.size() < maxSizeBuffer || maxSizeBuffer == -1)
   {
+    // cout << "Hi from if" << endl;
     buffer.push_back(newValue);
     log.writeLog("Succesfully written to the buffer with value " + to_string(newValue) + ".");
     // ------- End Critical --------
@@ -109,6 +113,7 @@ int Buffer::writeBuffer(int newValue)
 
   else
   {
+    // cout << "Hi from else" << endl << "Because " + to_string(buffer.size()) + " > " + to_string(maxSizeBuffer) + " or " + to_string(maxSizeBuffer) + " != -1 " << endl;
     lockBuffer.unlock();
     // ------- Begin Critical --------
     log.writeLog("Failed to writeBuffer, as buffer has reached maximum capacity...");
@@ -147,7 +152,10 @@ int Buffer::setBoundBuffer(int bound)
   {
     // ------- Begin Critical --------
     lockBuffer.lock();
-    buffer.resize(bound);
+    if (buffer.size() > bound)
+    {
+      buffer.resize(bound);
+    }
     lockBuffer.unlock();
     lockBounds.lock();
     maxSizeBuffer = bound;
@@ -180,24 +188,14 @@ Logger Buffer::getLogger()
   return log;
 }
 
-void testRun1(Buffer buffer)
+int Buffer::size()
 {
-  buffer.writeBuffer(500);
-  buffer.writeBuffer(999);
-  buffer.writeBuffer(10);
-  buffer.setBoundBuffer(1);
-  buffer.writeBuffer(2);
-  buffer.writeBuffer(9);
-  buffer.setUnboundedBuffer();
-  buffer.writeBuffer(2);
-  buffer.writeBuffer(9);
-  for (int i = 0; i < 3; i++)
-  {
-    std::thread::id this_id = std::this_thread::get_id();
-    cout << "[" << this_id << "] [BUFFER READ] " + to_string(buffer.readBuffer()) + "\n";
-  }
+  return buffer.size();
+}
 
-  cout << buffer.getLogger().readLog(-1);
+int Buffer::getBound()
+{
+  return maxSizeBuffer;
 }
 
 void addRandomInt(Buffer &buffer)
@@ -245,14 +243,27 @@ void testReadingItems(Buffer &buffer, int toRead)
   cout << buffer.getLogger().readLog(-1);
 }
 
-void testBound(Buffer& buffer, int newBound) {
+void testBound(Buffer &buffer, int newBound)
+{
+  // cout << "Before testing buffer size is : " + to_string(buffer.size()) << " and boud is set to : " + to_string(buffer.getBound()) << endl;
   buffer.setBoundBuffer(newBound);
 
   for (int i = 0; i < newBound + 1; i++)
   {
     addRandomInt(buffer);
   }
-  
+  cout << buffer.getLogger().readLog(-1);
+}
+
+void testUnbounding(Buffer &buffer, int bound)
+{
+  buffer.setUnboundedBuffer();
+
+  for (int i = 0; i < bound + 1; i++)
+  {
+    addRandomInt(buffer);
+  }
+
   cout << buffer.getLogger().readLog(-1);
 }
 
@@ -270,9 +281,13 @@ int main(int argc, char *argv[])
   testReadingItems(buffer, noItems);
   //  Testing bound
   cout << "-------------Testing Bounds--------------" << endl;
+  int bound = 2;
   Logger log2 = Logger();
-  Buffer buffer2 = Buffer(log2);  
-  testBound(buffer2, 2);
+  Buffer buffer2 = Buffer(log2);
+  testBound(buffer2, bound);
+
+  cout << "--------------Testing Unbounding---------------" << endl;
+  testUnbounding(buffer2, bound);
 
   cout << "All threads finished..." << endl;
 
